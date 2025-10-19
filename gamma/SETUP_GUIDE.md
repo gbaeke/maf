@@ -55,11 +55,9 @@ This installs all dependencies including:
 - Tavily Python client
 - And more...
 
-**Installation time**: 3-5 minutes depending on your internet connection
-
 ## Step 5: Set Up Environment Variables
 
-Create a `.env` file in the project root with your API keys and endpoints:
+Create a `.env` file in the project root (or gamma folder) with your API keys and endpoints:
 
 ```bash
 # Azure OpenAI Configuration
@@ -83,7 +81,7 @@ LOG_LEVEL=INFO
 1. **Azure OpenAI**:
    - Go to Azure Portal → Your OpenAI Resource → Keys and Endpoint
    - Copy the endpoint URL and API key
-   - Ensure you have a deployment (e.g., `gpt-4o-mini`)
+   - Ensure you have a deployment (e.g., `gpt-5-mini`)
 
 2. **Tavily API**:
    - Visit [https://tavily.com](https://tavily.com)
@@ -141,188 +139,23 @@ The workflow will:
 
 In the browser UI:
 
-1. **Enter a presentation topic** in the input field
+1. **Enter a presentation topic** via the **Configure & Run** button
    - Example: "Create a presentation about Python async programming"
    - Example: "Machine Learning fundamentals for business leaders"
 
-2. **Click "Submit"** to start the workflow
-
-3. **Watch the workflow execute** in real-time:
+2. **Watch the workflow execute** in real-time:
    - ✓ Outline Agent researches and creates outline
    - ✓ Research Agent generates slide content
    - ✓ Gamma Executor creates presentation PDF
 
-4. **Download the PDF** when complete
+3. **Check the PDF** when complete or check the presentation in Gamma
 
 ## Step 9: Monitor Logs
 
-Open another terminal to monitor logs while the workflow runs:
+Logs should appear in your terminal:
 
-```bash
-# In a second terminal
-source .venv/bin/activate
-cd gamma
-tail -f /path/to/logfile.log
-```
-
-Or check console output in the running terminal for structured logs like:
 ```
 [2025-10-19 13:09:22 - search.py:45 - INFO] SEARCH - "Python async" - Searching
 [2025-10-19 13:09:23 - presentation_workflow.py:150 - INFO] GAMMA - "Python Async Mastery" - POST /generations 201
 ```
 
-## Step 10: Stop the Workflow
-
-Press `CTRL+C` in the terminal running the workflow to stop it:
-
-```
-^C
-INFO:     Shutdown complete.
-```
-
-## Troubleshooting
-
-### Virtual Environment Issues
-
-**Problem**: `python3: command not found` or `python` doesn't work
-```bash
-# Use python3 explicitly
-python3 -m venv .venv
-source .venv/bin/activate
-```
-
-**Problem**: Activation doesn't work
-```bash
-# Try with bash explicitly
-bash .venv/bin/activate
-```
-
-### Installation Issues
-
-**Problem**: `ModuleNotFoundError: No module named 'agent_framework'`
-```bash
-# Ensure virtual environment is activated
-source .venv/bin/activate
-
-# Reinstall requirements
-pip install --upgrade pip
-pip install -r gamma/requirements.txt
-```
-
-**Problem**: `pip: command not found`
-```bash
-# Use python -m pip instead
-python -m pip install -r gamma/requirements.txt
-```
-
-### Azure Authentication Issues
-
-**Problem**: `AuthenticationError` or authentication fails
-```bash
-# Option 1: Use Azure CLI authentication (recommended)
-az login
-
-# Option 2: Provide API key in .env
-AZURE_OPENAI_API_KEY=<your-key>
-```
-
-### API Key Issues
-
-**Problem**: `ValueError: API key not found`
-- Verify `.env` file exists in the project root
-- Check that all keys are set correctly (no typos, extra spaces)
-- Use `echo $AZURE_OPENAI_API_KEY` to verify environment variables are loaded
-- Restart the terminal after updating `.env`
-
-**Problem**: `401 Unauthorized` errors
-- Verify API keys are correct
-- Check that API keys haven't expired
-- Ensure Tavily/GAMMA API keys are still valid
-
-### Network Issues
-
-**Problem**: Connection timeouts
-- Check your internet connection
-- Verify firewall allows outbound HTTPS connections
-- Try with a VPN if behind corporate proxy
-
-## Running Tests (Optional)
-
-To test individual components:
-
-```bash
-# Test search functionality
-python -c "
-import asyncio
-from tools.search import search_web
-
-async def test():
-    result = await search_web(['python async programming'])
-    print(result)
-
-asyncio.run(test())
-"
-
-# Test agent creation
-python -c "
-from presentation_workflow import outline_agent
-print('✓ Outline agent created successfully')
-"
-```
-
-## Advanced: Running Without Browser UI
-
-If you prefer not to use the browser UI, you can run the workflow programmatically:
-
-```python
-import asyncio
-from presentation_workflow import workflow
-
-async def main():
-    result = await workflow.run("Create a presentation about Python async")
-    print(result)
-
-asyncio.run(main())
-```
-
-## Advanced: Using Different Orchestration
-
-To test different workflow orchestration modes, modify the `WorkflowBuilder`:
-
-```python
-# Sequential (default) - each step depends on previous
-workflow = (
-    WorkflowBuilder()
-    .set_start_executor(outline_agent)
-    .add_edge(outline_agent, research_agent)
-    .add_edge(research_agent, GammaAPIExecutor())
-    .build()
-)
-
-# For other patterns, see the blog post for concurrent/handoff examples
-```
-
-## Next Steps
-
-1. **Customize agents**: Modify instructions in `presentation_workflow.py`
-2. **Add more tools**: Create additional `@ai_function` decorated functions in `tools/search.py`
-3. **Integrate with services**: Add custom executors for your APIs
-4. **Deploy to production**: Use Docker and container orchestration
-
-## Getting Help
-
-- Check logs for detailed error messages
-- Review the blog post for architecture explanations
-- Consult [Microsoft Agent Framework docs](https://learn.microsoft.com/en-us/agent-framework/)
-- Check [Azure OpenAI docs](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-
-## Summary
-
-You should now have:
-- ✓ Python virtual environment set up
-- ✓ All dependencies installed
-- ✓ Environment variables configured
-- ✓ Workflow running and accessible at `http://127.0.0.1:8093`
-- ✓ Ability to generate presentations with a single request
-
-Happy presentation building! 🎉
