@@ -98,6 +98,7 @@ class ReviewResponse(BaseModel):
     title: str
     number_of_slides: int
     slides: list[SlideContent]
+    notes: Annotated[list[str], Field(description="Highly detailed slide notes for the presenter, providing in-depth guidance, key talking points, and additional context for each slide to ensure effective delivery.")]
     audience: str
     review_notes: str
     is_final: bool = True
@@ -108,6 +109,7 @@ class OrchestratorOutput(BaseModel):
     title: Annotated[str, Field(description="Presentation title from reviewer agent")]
     number_of_slides: Annotated[int, Field(description="Number of slides from reviewer agent")]
     slides: Annotated[list[SlideContent], Field(description="Final slide content from reviewer agent")]
+    notes: Annotated[list[str], Field(description="Highly detailed slide notes for the presenter, providing in-depth guidance, key talking points, and additional context for each slide to ensure effective delivery.")]
     audience: Annotated[str, Field(description="Target audience from reviewer agent")]
     review_notes: Annotated[str, Field(description="Review notes and feedback from reviewer agent")]
     is_final: Annotated[bool, Field(description="Whether the presentation is final and ready for generation")]
@@ -175,7 +177,8 @@ reviewer_agent = AzureOpenAIResponsesClient(
         3. Never assume audience knows acronyms or specialized terms, even when the audience is technical
         4. Ensure each slide has meaningful content (100 words max with 3 main bullet points)
         5. Provide improvement suggestions in the review_notes field if needed
-        6. Return the data in the same structure, marking is_final as True when ready for presentation generation
+        6. Ensure you add detailed slide notes. You can use the web search tool to do this if needed.
+        7. Return the data in the same structure, marking is_final as True when ready for presentation generation
 
         Focus on:
         - Content quality and accuracy
@@ -344,6 +347,12 @@ async def main():
                         # Parse the orchestrator's structured output
                         # The orchestrator returns OrchestratorOutput in JSON format
                         orchestrator_output = OrchestratorOutput.model_validate_json(orchestrator_response_text)
+                        
+                        # Check if number of slides is valid
+                        if orchestrator_output.number_of_slides <= 0:
+                            print(f"\n⚠️  Cannot generate presentation: Invalid number of slides ({orchestrator_output.number_of_slides})")
+                            print("   The orchestrator must create at least 1 slide.\n")
+                            continue
                         
                         print("\n📊 Generating PDF presentation...")
                         result = await generate_presentation_from_content(orchestrator_output)
