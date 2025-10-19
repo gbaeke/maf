@@ -6,7 +6,7 @@ This module uses agents with the "agent as tool" pattern:
 - Outline Agent: creates presentation outline (available as tool)
 - Researcher Agent: researches and creates slide content (available as tool)
 - Reviewer Agent: reviews and finalizes the presentation (available as tool)
-- Gamma API: generates the final PDF presentation
+- Gamma API: generates the final PDF presentation using output from the orchestrator (structured output)
 """
 
 import asyncio
